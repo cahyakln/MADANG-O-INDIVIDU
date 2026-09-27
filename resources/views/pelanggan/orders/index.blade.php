@@ -1,0 +1,76 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800">Pesanan Saya</h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @if(session('success'))
+                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{{ session('error') }}</div>
+            @endif
+
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pesanan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pembayaran</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ambil</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($orders as $order)
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $order->order_number }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $order->pickup_datetime->format('d/m/Y H:i') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    @if($order->payment_status === 'lunas')
+                                        bg-green-100 text-green-800
+                                    @else
+                                        bg-yellow-100 text-yellow-800
+                                    @endif">
+                                    {{ ucfirst(str_replace('_', ' ', $order->payment_status)) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    @if($order->pickup_status === 'sudah_diambil')
+                                        bg-green-100 text-green-800
+                                    @else
+                                        bg-blue-100 text-blue-800
+                                    @endif">
+                                    {{ ucfirst(str_replace('_', ' ', $order->pickup_status)) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{{ route('pelanggan.orders.show', $order) }}" class="text-blue-600 hover:text-blue-900 mr-3">Detail</a>
+                                @if($order->payment_status === 'belum_lunas' && $order->pickup_status === 'belum_diambil')
+                                    <form action="{{ route('pelanggan.orders.destroy', $order) }}" method="POST" class="inline" onsubmit="return confirm('Batalkan pesanan ini?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900">Batal</button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">Belum ada pesanan</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="px-6 py-4 border-t">
+                    {{ $orders->links() }}
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>
